@@ -379,36 +379,32 @@ p_dt_bar <- ggplot(sum_dt_km, aes(x = phase, y = mean_km, fill = phase)) +
 
 # @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-
 # @-@-@-@-@-@-@-@-@-@-@-@-@-@-@-
+####  lmer - does phase affect distance travelled?  #### 
 
-### GLM for the phases ### 
-threephases<- read.delim("C:/Users/path ... and ..file.txt", stringsAsFactors=TRUE)
-
-m_sqrt <- glm(sqrt(DT) ~ phase,
-              family = gaussian(),
-              data = threephases,
-              na.action = na.exclude)
-summary(m_sqrt)
-
-m_anova_sqrt <- aov(sqrt(DT) ~ phase, data = threephases)
-summary(m_anova_sqrt)
-
-TukeyHSD(m_anova_sqrt)
-
-## checking assumpsions for glm ... 
-threephases$fit   <- fitted(m_sqrt)
-threephases$resid <- resid(m_sqrt)
-
-# Residuals vs fitted
-ggplot(threephases, aes(x = fit, y = resid)) +
-  geom_hline(yintercept = 0, linewidth = 0.4) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(se = FALSE, method = "loess", formula = y ~ x, linewidth = 0.6)
-
-# Normal QQ plot of residuals
-ggplot(threephases, aes(sample = resid)) +
-  stat_qq() +stat_qq_line()
+df<- read.delim("C:/Users/....../df.txt", stringsAsFactors=TRUE)
+ 
+library(lmerTest)
+library(lme4)
 
 
+# Mixed model with id as random effect
+m_mixed <- lmer(sqrt(DT) ~ phase + (1 | ID), data = df, na.action = na.exclude)
+
+summary(m_mixed)
+
+########### ASSUMPTIONS 
+# error 
+qqnorm(residuals(m_mixed))
+qqline(residuals(m_mixed)) 
+
+# residuals 
+plot(fitted(m_mixed), residuals(m_mixed)) 
+abline(h = 0, col = "red")
+
+# random effects 
+ranef_vals <- ranef(m_mixed)$ID[,1]
+qqnorm(ranef_vals, main = "QQ-plot random effects")
+qqline(ranef_vals)  
 
 
 
